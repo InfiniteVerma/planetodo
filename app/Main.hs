@@ -32,25 +32,15 @@ import Test.Hspec
 
 -- This is how to connect to our test database
 -- Options with bytestring values are given to partially test #17 and #23
--- testConn :: String -> String -> String -> String -> Word16 -> ConnectInfo
--- testConn host username password database port =
-testConn :: ConnectInfo 
-testConn = 
+testConn :: String -> String -> String -> String -> Word16 -> ConnectInfo
+testConn host username password database port =
   defaultConnectInfo
-    { connectHost = "f170tv4yet41.ap-south-2.psdb.cloud",
-      connectUser = "peew19txub5c",
-      connectPassword = "pscale_pw_HFyrA-j71V-j-RMLuGdEchANuef7bDUHLkHvclwEdak",
-      connectDatabase = "firsttest",
-      connectPort = 33751
+    { connectHost = host,
+      connectUser = username,
+      connectPassword = password,
+      connectDatabase = database,
+      connectPort = port
     }
-
--- defaultConnectInfo
--- { connectHost = host,
---   connectUser = username,
---   connectPassword = password,
---   connectDatabase = database,
---   connectPort = port
---   }
 
 -- entry point
 --
@@ -58,16 +48,13 @@ testConn =
 -- stores Todo[] of length count using buildList method
 main :: IO ()
 main = do
-  -- loadFile defaultConfig
-  -- database <- getEnv "database"
-  -- username <- getEnv "username"
-  -- host <- getEnv "host"
-  -- password <- getEnv "password"
-  -- print database
-  -- print username
-  -- print host
-  -- print password
-  bracket (connect $ testConn) close $ \conn -> do
+  loadFile defaultConfig
+  database <- getEnv "database"
+  username <- getEnv "username"
+  host <- getEnv "host"
+  port <- getEnv "port"
+  password <- getEnv "password"
+  bracket (connect $ testConn "127.0.0.1" username password database 33751) close $ \conn -> do
     insertTodo (Todo {idNum = "1", todo = "asdf", priority = "3"}) conn
     printTodos conn
 
@@ -120,6 +107,7 @@ instance Show Todo where
 -- x create new table with more properties (edit above things)
 -- x. insert new todo
 -- x insert with custom data
+-- x  pull db creds from .env
 -- 5. cli wrapper
 -- 6. github repo + documentation
 -- 7. tweet
