@@ -1,15 +1,19 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+import Configuration.Dotenv (defaultConfig, loadFile)
 import Control.Applicative ((<|>))
 import Control.Exception (bracket)
-import Control.Monad (liftM2, when, replicateM_)
-import Data.ByteString.Char8 (ByteString, unpack, pack)
+import Control.Monad (liftM2, replicateM_, void, when)
+import Data.ByteString.Char8 (ByteString, pack, unpack)
 import qualified Data.ByteString.Char8 as B
 import Data.Maybe (fromJust, fromMaybe, isJust)
+import Data.Word (Word16)
 import Database.MySQL.Base
   ( ConnectInfo (..),
+    Connection,
     Option (..),
     Result,
+    affectedRows,
     close,
     connect,
     dataSeek,
@@ -22,23 +26,31 @@ import Database.MySQL.Base
     rowSeek,
     storeResult,
     useResult,
-    affectedRows,
-    Connection
   )
-import System.Environment (getEnvironment)
+import System.Environment (getEnv, getEnvironment)
 import Test.Hspec
 
 -- This is how to connect to our test database
 -- Options with bytestring values are given to partially test #17 and #23
-testConn :: ConnectInfo
-testConn =
+-- testConn :: String -> String -> String -> String -> Word16 -> ConnectInfo
+-- testConn host username password database port =
+testConn :: ConnectInfo 
+testConn = 
   defaultConnectInfo
-    { connectHost = "",
-      connectUser = "",
-      connectPassword = "",
-      connectDatabase = "",
-      connectPort = 0
+    { connectHost = "f170tv4yet41.ap-south-2.psdb.cloud",
+      connectUser = "peew19txub5c",
+      connectPassword = "pscale_pw_HFyrA-j71V-j-RMLuGdEchANuef7bDUHLkHvclwEdak",
+      connectDatabase = "firsttest",
+      connectPort = 33751
     }
+
+-- defaultConnectInfo
+-- { connectHost = host,
+--   connectUser = username,
+--   connectPassword = password,
+--   connectDatabase = database,
+--   connectPort = port
+--   }
 
 -- entry point
 --
@@ -46,14 +58,24 @@ testConn =
 -- stores Todo[] of length count using buildList method
 main :: IO ()
 main = do
-  bracket (connect testConn) close $ \conn -> do
-    insertTodo (Todo {idNum="1", todo="asdf", priority="3"}) conn
+  -- loadFile defaultConfig
+  -- database <- getEnv "database"
+  -- username <- getEnv "username"
+  -- host <- getEnv "host"
+  -- password <- getEnv "password"
+  -- print database
+  -- print username
+  -- print host
+  -- print password
+  bracket (connect $ testConn) close $ \conn -> do
+    insertTodo (Todo {idNum = "1", todo = "asdf", priority = "3"}) conn
     printTodos conn
 
 insertTodo :: Todo -> Connection -> IO ()
 insertTodo todoItem conn = query conn $ pack ("insert into categories (name, priority) values (" ++ todoStr ++ " , " ++ priorityStr ++ ");")
-    where todoStr = "\"" ++ unpack (todo todoItem) ++ "\""
-          priorityStr = "\"" ++ unpack (priority todoItem) ++ "\""
+  where
+    todoStr = "\"" ++ unpack (todo todoItem) ++ "\""
+    priorityStr = "\"" ++ unpack (priority todoItem) ++ "\""
 
 printTodos :: Connection -> IO ()
 printTodos conn = do
