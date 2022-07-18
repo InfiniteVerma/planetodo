@@ -1,4 +1,4 @@
-# Project Title
+# Planetodo
 
 A simple :) todo app in haskell using PlanetScale as mysql db.
 
