@@ -3,7 +3,6 @@
 import Configuration.Dotenv (defaultConfig, loadFile)
 import Control.Applicative ((<|>))
 import Control.Exception (bracket)
-import Control.Monad (liftM2, replicateM_, void, when)
 import Data.ByteString.Char8 (ByteString, pack, unpack)
 import qualified Data.ByteString.Char8 as B
 import Data.Maybe (fromJust, fromMaybe, isJust)
@@ -27,8 +26,7 @@ import Database.MySQL.Base
     storeResult,
     useResult,
   )
-import System.Environment (getArgs, getEnv, getEnvironment)
-import Test.Hspec
+import System.Environment (getArgs, getEnv)
 
 data Priority = Low | Mid | High deriving (Enum)
 
@@ -101,7 +99,6 @@ main = do
   port <- getEnv "port"
   pwd <- getEnv "password"
   args <- getArgs
-  print args
   if null args
     then printHelp
     else evaluate args user pwd db
