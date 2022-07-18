@@ -65,14 +65,14 @@ printHelp :: IO ()
 printHelp = putStrLn "PlaneTodo v1.0.0\n\nCommands list: \n1. --list\n2. --insert {todoitem}"
 
 insertTodo :: Todo -> Connection -> IO ()
-insertTodo todoItem conn = query conn $ pack ("insert into categories (name, priority) values (" ++ todoStr ++ " , " ++ priorityStr ++ ");")
+insertTodo todoItem conn = query conn $ pack ("insert into todos (name, priority) values (" ++ todoStr ++ " , " ++ priorityStr ++ ");")
   where
     todoStr = "\"" ++ unpack (todo todoItem) ++ "\""
     priorityStr = "\"" ++ unpack (priority todoItem) ++ "\""
 
 printTodos :: Connection -> IO ()
 printTodos conn = do
-  query conn "select * from categories"
+  query conn "select * from todos"
   result <- storeResult conn
   count <- affectedRows conn
   print count
