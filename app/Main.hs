@@ -54,7 +54,7 @@ main = do
   host <- getEnv "host"
   port <- getEnv "port"
   password <- getEnv "password"
-  bracket (connect $ testConn "127.0.0.1" username password database 33751) close $ \conn -> do
+  bracket (connect $ testConn "127.0.0.1" username password database 3000) close $ \conn -> do
     insertTodo (Todo {idNum = "1", todo = "asdf", priority = "3"}) conn
     printTodos conn
 
