@@ -27,8 +27,19 @@ import Database.MySQL.Base
     storeResult,
     useResult,
   )
-import System.Environment (getEnv, getEnvironment)
+import System.Environment (getArgs, getEnv, getEnvironment)
 import Test.Hspec
+
+data Priority = Low | Mid | High deriving (Enum)
+
+data Todo = Todo
+  { idNum :: ByteString,
+    todo :: ByteString,
+    priority :: ByteString -- // TODO add this priority using enum
+  }
+
+instance Show Todo where
+  show (Todo id text priority) = unpack id ++ ": " ++ unpack text ++ " - " ++ unpack priority
 
 -- This is how to connect to our test database
 -- Options with bytestring values are given to partially test #17 and #23
@@ -42,21 +53,18 @@ testConn host username password database port =
       connectPort = port
     }
 
--- entry point
+-- evaluate function
 --
--- gets number of todos (into count)
--- stores Todo[] of length count using buildList method
-main :: IO ()
-main = do
-  loadFile defaultConfig
-  database <- getEnv "database"
-  username <- getEnv "username"
-  host <- getEnv "host"
-  port <- getEnv "port"
-  password <- getEnv "password"
-  bracket (connect $ testConn "127.0.0.1" username password database 3000) close $ \conn -> do
-    insertTodo (Todo {idNum = "1", todo = "asdf", priority = "3"}) conn
-    printTodos conn
+-- pattern match on the two command line options and do the corresponding
+evaluate :: [String] -> String -> String -> String -> IO ()
+evaluate ["--list"] user pwd db = bracket (connect $ testConn "127.0.0.1" user pwd db 3000) close $ \conn -> do printTodos conn
+evaluate ("--insert" : xs) user pwd db = bracket (connect $ testConn "127.0.0.1" user pwd db 3000) close $ \conn -> do
+  let todoitem = unwords xs
+  insertTodo (Todo {idNum = "1", todo = pack todoitem, priority = "1"}) conn
+evaluate _ user pwd db = printHelp
+
+printHelp :: IO ()
+printHelp = putStrLn "PlaneTodo v1.0.0\n\nCommands list: \n1. --list\n2. --insert {todoitem}"
 
 insertTodo :: Todo -> Connection -> IO ()
 insertTodo todoItem conn = query conn $ pack ("insert into categories (name, priority) values (" ++ todoStr ++ " , " ++ priorityStr ++ ");")
@@ -73,11 +81,6 @@ printTodos conn = do
   todos <- buildList (fromIntegral count) result
   mapM_ print todos
 
-printMaybe :: Show a => Maybe a -> IO ()
-printMaybe m =
-  when (isJust m) $
-    print (fromJust m)
-
 buildList :: Int -> Result -> IO [Todo]
 buildList 0 result = return []
 buildList c result = do
@@ -88,26 +91,17 @@ buildList c result = do
 makeItem :: [ByteString] -> Todo
 makeItem row = Todo {idNum = row !! 0, todo = row !! 1, priority = row !! 2}
 
-data Priority = Low | Mid | High deriving (Enum)
-
-data Todo = Todo
-  { idNum :: ByteString,
-    todo :: ByteString,
-    priority :: ByteString -- // TODO add this priority
-  }
-
-instance Show Todo where
-  show (Todo id text priority) = unpack id ++ ": " ++ unpack text ++ " - " ++ unpack priority
-
--- TODO
--- x. New main wrapper without hspec
--- x. build item of Todo
--- x. build list of Todo with count: rowCount
--- x. pretty print it
--- x create new table with more properties (edit above things)
--- x. insert new todo
--- x insert with custom data
--- x  pull db creds from .env
--- 5. cli wrapper
--- 6. github repo + documentation
--- 7. tweet
+-- entry point
+main :: IO ()
+main = do
+  loadFile defaultConfig
+  db <- getEnv "database"
+  user <- getEnv "username"
+  host <- getEnv "host"
+  port <- getEnv "port"
+  pwd <- getEnv "password"
+  args <- getArgs
+  print args
+  if null args
+    then printHelp
+    else evaluate args user pwd db
