@@ -1,6 +1,6 @@
 # Project Title
 
-A simple todo app in haskell using PlanetScale as mysql db.
+A simple :) todo app in haskell using PlanetScale as mysql db.
 
 ## Description
 
@@ -35,3 +35,11 @@ $ cabal install
 
 - List todo items: `cabal run planetodo -- --list`
 - Insert new item: `cabal run planetodo -- --insert hello world`
+
+### Screenshots
+
+After adding three items: 
+
+mysql query              |  cabal run planetodo -- --list
+:-------------------------:|:-------------------------:
+![image](https://user-images.githubusercontent.com/45547198/179513164-17e3fff6-40c6-4579-b64e-1ec3077fb82b.png)  |![image](https://user-images.githubusercontent.com/45547198/179513623-c6ace77b-e263-4607-9088-bb4546bbc6b9.png)
